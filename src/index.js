@@ -92,8 +92,8 @@ function morePage(event){
     console.log(page);
     createCard(inputElement.value)
 
-    if(){
-        
-    }
+    // if(){
+
+    // }
 }
 
