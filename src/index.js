@@ -34,26 +34,29 @@ function search(event){
     page = 1
     event.preventDefault()
     createCard(event.target.elements.searchQuery.value.trim())
-    loadMore.style.display = 'block'
 }
 searchForm.addEventListener('submit', search)
 
 //получаем данные из промиса
 async function getData(text){
     // масив данных из Api
-    const dataApi = await getApi(text)
+    if(!text){
+        loadMore.style.display = 'none'
+        return
+    }
+    const data = await getApi(text)
     // console.log(dataApi);
-    if(dataApi.hits.length === 0){
+    if(data.hits.length === 0){
         console.log("Sorry, there are no images matching your search query. Please try again.")
     }
 
-    if(dataApi.hits * page < dataApi.totalHits){
+    if(data.totalHits <= per_page * page){
         loadMore.style.display = 'none'
     } else {
         loadMore.style.display = 'block'
     }
 
-    return dataApi
+    return data
 }   
 
 async function createCard (text){
