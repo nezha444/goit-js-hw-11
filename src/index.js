@@ -50,6 +50,7 @@ async function getData(text){
     // console.log(dataApi);
     // if(data.hits.length === 0){
     // }
+
     
     if(data.totalHits <= per_page * page){
         Notify.warning("Sorry, there are no images matching your search query. Please try again.")
@@ -58,17 +59,17 @@ async function getData(text){
         loadMore.style.display = 'block'
     }
 
-    return data
+    if(data.length !== 0){
+        return data
+    }
 }   
 
 async function createCard (text){
-
     const arr = await getData(text)
-    const newArr = arr.hits.map(element=>card(element))
-
-
-    gallery.insertAdjacentHTML('beforeend', newArr.join(''))
-    
+    if (arr) {
+        const newArr = arr.hits.map(element => card(element))
+        gallery.insertAdjacentHTML('beforeend', newArr.join(''))
+    }
 }
 
 function card (data){
