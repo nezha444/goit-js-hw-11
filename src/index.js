@@ -7,6 +7,7 @@ const inputElement = document.querySelector('input')
 const loadMore = document.querySelector('.load-more')
 
 let page = 1
+const per_page = 40
 const getApi = async (input) => {
     
     const { data } = await axios.get('', {
@@ -17,7 +18,7 @@ const getApi = async (input) => {
             orientation: 'horizontal',
             safesearch: 'true',
             page: `${page}`,
-            per_page: '40',
+            per_page: `${per_page}`,
         }
     })
     return data
@@ -41,17 +42,24 @@ searchForm.addEventListener('submit', search)
 async function getData(text){
     // масив данных из Api
     const dataApi = await getApi(text)
-    console.log(dataApi);
+    // console.log(dataApi);
     if(dataApi.hits.length === 0){
         console.log("Sorry, there are no images matching your search query. Please try again.")
     }
-    return dataApi.hits
+
+    if(dataApi.hits * page < dataApi.totalHits){
+        loadMore.style.display = 'none'
+    } else {
+        loadMore.style.display = 'block'
+    }
+
+    return dataApi
 }   
 
 async function createCard (text){
 
     const arr = await getData(text)
-    const newArr = arr.map(element=>card(element))
+    const newArr = arr.hits.map(element=>card(element))
 
     gallery.insertAdjacentHTML('beforeend', newArr.join(''))
 }
@@ -87,13 +95,10 @@ function card (data){
 loadMore.addEventListener('click', morePage)
 
 
-function morePage(event){
+async function morePage(event){
     page += 1
-    console.log(page);
+    // console.log(page);
     createCard(inputElement.value)
-
-    // if(){
-
-    // }
+    const dataApi = await getApi(inputElement.value)
+    console.log(dataApi);
 }
-
