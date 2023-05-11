@@ -1,106 +1,99 @@
-import './css/styles.css';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import debounce from 'lodash.debounce';
+import axios from "axios";
+axios.defaults.baseURL = 'https://pixabay.com/api/' 
 
-const DEBOUNCE_DELAY = 300;
+const gallery = document.querySelector('.gallery')
+const searchForm = document.querySelector('#search-form')
+const inputElement = document.querySelector('input')
+const loadMore = document.querySelector('.load-more')
 
-const input = document.getElementById('search-box')
-const ul = document.querySelector('.country-list')
-
-
-input.addEventListener('input',
-debounce( 
+let page = 1
+const getApi = async (input) => {
     
-    (event)=>{
-    if(event.target.value.trim() === ''){
-        ul.innerHTML = ''
-        return
+    const { data } = await axios.get('', {
+        params:{
+            q: `${input}`,
+            key: '36273438-7ad8bc87a6816fbd3e66d9cf9',
+            image_type: 'photo',
+            orientation: 'horizontal',
+            safesearch: 'true',
+            page: `${page}`,
+            per_page: '40',
+        }
+    })
+    return data
+}
+
+
+
+
+
+
+function search(event){
+    gallery.innerHTML = ''
+    page = 1
+    event.preventDefault()
+    createCard(event.target.elements.searchQuery.value.trim())
+    loadMore.style.display = 'block'
+}
+searchForm.addEventListener('submit', search)
+
+//получаем данные из промиса
+async function getData(text){
+    // масив данных из Api
+    const dataApi = await getApi(text)
+    console.log(dataApi);
+    if(dataApi.hits.length === 0){
+        console.log("Sorry, there are no images matching your search query. Please try again.")
     }
-    fetchCountries(event.target.value.trim())
-    .then(data=>{
-        if (Array.isArray(data)) {
-            if(data.length>10){
-                Notify.info('Too many matches found. Please enter a more specific name.')
-            }
-    
-            if(data.length<=10 && data.length>1){
-                ul.innerHTML = ''
-                data.forEach(el=>{ul.insertAdjacentHTML('beforeend',createCountrisListItem(el))})
-            }
-            
-            if(data.length === 1){
-                ul.innerHTML = createCountri(data[0])
-            }
-        } else {
-            throw new Error('Invalid data format');
-        }
-    })
-    .catch((error)=>{
-        Notify.failure(`❌"Oops, there is no country with that name"`);
-        console.error(error);
-    });
-    
+    return dataApi.hits
+}   
 
-},DEBOUNCE_DELAY))
+async function createCard (text){
 
-const createCountrisListItem = item => {
-   return `<li class='country-list-items'>
-        <img class='country-list-svg' src="${item.flags.svg}">
-        <h3 class='country-list-title'>${item.name.common}</h3>
-    </li>
-    `
-}
-const countryListItems = document.querySelector('.country-list-items')
-const countryListSvg = document.querySelector('.country-list-svg')
-const countryListTitle = document.querySelector('.country-list-title')
- 
-const createCountri = data =>{
-   return `<li class='country-one'>
-            <div class='country-one-cont'>
-                    <img class='country-one-img' src="${data.flags.svg}">
-                    <h3 class='country-one-title'>${data.name.common}</h3>
-            </div>
+    const arr = await getData(text)
+    const newArr = arr.map(element=>card(element))
 
-            <ul class='country-one-list'>
-                <li class='country-one-list-item'>
-                    <span class='country-one-list-item-span'>Capital:</span><p>${data.capital}</p>
-                </li>
-                <li class='country-one-list-item'>
-                    <span class='country-one-list-item-span'>Population:</span><p>${data.population}</p>
-                </li>
-                <li class='country-one-list-item'>
-                    <span class='country-one-list-item-span'>Languages:</span><p>${Object.values(data.languages).join(',')}</p>
-                </li>
-            </ul>
-    </li>` 
+    gallery.insertAdjacentHTML('beforeend', newArr.join(''))
 }
 
-
-// const renderList = (el) => {
-//   const countri = el.map(createCountriListItem).join("");
-//   ul.innerHTML = countri;
-// };
-
-
-
-
-
-const fetchCountries = (name) => {
-    const filter = 'name,capital,population,flags,languages'
-    return fetch(`https://restcountries.com/v3.1/name/${name}?fields=${filter}`)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(response.status);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (Array.isArray(data)) {
-            return data;
-        } else {
-            throw new Error('Invalid data format');
-        }
-    })
+function card (data){
+   return `
+    <div class="photo-card">
+        <img class="img" src="${data.webformatURL}" alt="${data.tags}" loading="lazy" />
+        <div class="info">
+            <p class="info-item">
+            <b>Likes</b>
+            ${data.likes}
+            </p>
+            <p class="info-item">
+            <b>Views</b>
+            ${data.views}
+            </p>
+            <p class="info-item">
+            <b>Comments</b>
+            ${data.comments}
+            </p>
+            <p class="info-item">
+            <b>Downloads</b>
+            ${data.downloads}
+            </p>
+        </div>
+    </div>
+   `
 }
 
+// Пагинация
+
+loadMore.addEventListener('click', morePage)
+
+
+function morePage(event){
+    page += 1
+    console.log(page);
+    createCard(inputElement.value)
+
+    if(){
+        
+    }
+}
 
