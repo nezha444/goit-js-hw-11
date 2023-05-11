@@ -1,5 +1,7 @@
 import axios from "axios";
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 axios.defaults.baseURL = 'https://pixabay.com/api/' 
+
 
 const gallery = document.querySelector('.gallery')
 const searchForm = document.querySelector('#search-form')
@@ -46,11 +48,11 @@ async function getData(text){
     }
     const data = await getApi(text)
     // console.log(dataApi);
-    if(data.hits.length === 0){
-        console.log("Sorry, there are no images matching your search query. Please try again.")
-    }
-
+    // if(data.hits.length === 0){
+    // }
+    
     if(data.totalHits <= per_page * page){
+        Notify.warning("Sorry, there are no images matching your search query. Please try again.")
         loadMore.style.display = 'none'
     } else {
         loadMore.style.display = 'block'
@@ -64,7 +66,9 @@ async function createCard (text){
     const arr = await getData(text)
     const newArr = arr.hits.map(element=>card(element))
 
+
     gallery.insertAdjacentHTML('beforeend', newArr.join(''))
+    
 }
 
 function card (data){
